@@ -8,8 +8,8 @@ cultural knowledge as much as on what the image shows.
 This repository holds the format checker, the scorer, and the baselines.
 The data lives on [Hugging Face](https://huggingface.co/datasets/QCRI/MMCQA-SemEval27).
 
-> **Status:** the data, the download script and the baseline are here. The official scorer
-> and the format checker follow shortly, together with the submission platform.
+> **Status:** the data, the download script, the baseline and the format checker are here.
+> The official scorer follows shortly, together with the submission platform.
 
 - [Task 1: Spoken Visual QA](task1) — the question is an audio clip.
 - [Task 2: Textual Visual QA](task2) — the same question as text.
@@ -42,7 +42,7 @@ or all of them. Systems are ranked per task and per track.
 .
 ├── baselines/           Qwen2.5-Omni reference system for both tasks
 ├── data/                how to download the data and the media
-├── format_checker/      run before you submit                     (coming shortly)
+├── format_checker/      run before you submit
 ├── scorer/              the leaderboard's own evaluation script        (coming shortly)
 ├── task1/               Spoken Visual QA
 ├── task2/               Textual Visual QA
@@ -59,6 +59,9 @@ python data/download_data.py --tracks en --splits dev --root ~/mmcqa
 
 # 2. produce prediction.jsonl — baselines/ has a reference system
 python baselines/baseline_qwen_omni.py --task qa --track en --split dev --media-root ~/mmcqa
+
+# 3. check the format before you submit
+python format_checker/check_format.py --pred prediction.jsonl --ids ~/mmcqa/rows/qa_mena_dev_en.parquet
 ```
 
 ## Submission format

@@ -45,6 +45,11 @@ python ../baselines/baseline_qwen_omni.py --task sqa --track arz --split devtest
 {"id": "<id>", "answers": {"arz": "..."}}
 ```
 
-The format checker and the scorer follow shortly; see the repository README.
+```bash
+python ../format_checker/check_format.py --pred prediction.jsonl \
+    --ids ~/mmcqa/rows/sqa_mena_devtest_arz.parquet
+```
+
+The official scorer follows shortly; see the repository README.
 
 Ranked by **BERTScore-F1**; BLEU, ROUGE-L and Coverage are reported alongside.

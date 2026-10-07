@@ -51,5 +51,10 @@ disabled, so nothing is spent on speech output.
 
 ## After the run
 
-The format checker and the official scorer follow shortly; they will validate `prediction.jsonl`
-and score it against a labelled split with the leaderboard's own metrics.
+```bash
+python ../format_checker/check_format.py --pred prediction.jsonl \
+    --ids ~/mmcqa/rows/qa_mena_devtest_en.parquet
+```
+
+The official scorer follows shortly; it will score `prediction.jsonl` against a labelled split
+with the leaderboard's metrics.

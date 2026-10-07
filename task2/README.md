@@ -43,6 +43,11 @@ python ../baselines/baseline_qwen_omni.py --task qa --track en --split devtest \
 {"id": "<id>", "answers": {"en": "..."}}
 ```
 
-The format checker and the scorer follow shortly; see the repository README.
+```bash
+python ../format_checker/check_format.py --pred prediction.jsonl \
+    --ids ~/mmcqa/rows/qa_mena_devtest_en.parquet
+```
+
+The official scorer follows shortly; see the repository README.
 
 Ranked by **BERTScore-F1**; BLEU, ROUGE-L and Coverage are reported alongside.
