@@ -1,0 +1,10 @@
+# Qwen2.5-Omni baseline. Needs a GPU; 4-bit fits a 16 GB card.
+transformers>=4.52.0
+torchvision        # the Omni processor loads AutoVideoProcessor
+accelerate
+bitsandbytes
+qwen-omni-utils
+datasets
+soundfile
+librosa
+pillow
