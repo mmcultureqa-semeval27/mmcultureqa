@@ -64,8 +64,8 @@ def load_rows(task: str, track: str, split: str, limit: int | None,
 
 def build_model(model_id: str, quantize: bool, max_pixels: int):
     import torch
-    from transformers import (BitsAndBytesConfig, Qwen2_5OmniForConditionalGeneration,
-                              Qwen2_5OmniProcessor)
+    from transformers import (BitsAndBytesConfig, Qwen2_5OmniProcessor,
+                              Qwen2_5OmniThinkerForConditionalGeneration)
     dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
     quant = None
     if quantize:
@@ -73,10 +73,11 @@ def build_model(model_id: str, quantize: bool, max_pixels: int):
         quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                                    bnb_4bit_compute_dtype=dtype, bnb_4bit_use_double_quant=True)
     processor = Qwen2_5OmniProcessor.from_pretrained(model_id, max_pixels=max_pixels)
-    model = Qwen2_5OmniForConditionalGeneration.from_pretrained(
+    # the thinker is the half that produces text; loading it alone skips the speech
+    # decoder and the talker API, which differs between transformers versions
+    model = Qwen2_5OmniThinkerForConditionalGeneration.from_pretrained(
         model_id, torch_dtype=dtype, device_map="auto", quantization_config=quant,
         attn_implementation="sdpa")
-    model.disable_talker()              # text only; no speech is generated
     model.eval()
     print(f"[baseline] {model_id} loaded (4-bit: {quantize}, dtype {dtype})")
     return model, processor
@@ -100,8 +101,7 @@ def answer(model, processor, image: Path, audio: Path | None, question: str | No
     inputs = processor(text=text, audio=audios, images=images, videos=videos,
                        return_tensors="pt", padding=True, use_audio_in_video=False)
     inputs = inputs.to(model.device).to(model.dtype)
-    generated = model.generate(**inputs, return_audio=False, do_sample=False,
-                               max_new_tokens=max_new_tokens, use_audio_in_video=False)
+    generated = model.generate(**inputs, do_sample=False, max_new_tokens=max_new_tokens)
     out = processor.batch_decode(generated[:, inputs["input_ids"].shape[1]:],
                                  skip_special_tokens=True, clean_up_tokenization_spaces=False)
     return out[0].strip()
