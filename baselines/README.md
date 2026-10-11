@@ -12,7 +12,19 @@ same conversation:
 It is a **reference, not a strong system**: 4-bit weights, greedy decoding, a two-line prompt,
 no retrieval and no fine-tuning. Treat it as a working starting point and change everything.
 
-## Run it
+## Colab
+
+[`baseline_qa_colab.ipynb`](./baseline_qa_colab.ipynb) runs the whole thing on a free T4:
+pulls the English dev split, answers it, saves `prediction_qa_en.jsonl`, checks the format
+and scores itself against the references.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mmcultureqa-semeval27/mmcultureqa/blob/main/baselines/baseline_qa_colab.ipynb)
+
+Switch `TASK` to `"sqa"` in the config cell for Task 1, `TRACK` for another language, and
+`SPLIT` to `devtest` for the submission split. Answers are written as they are produced, so a
+dropped runtime costs you one item, and re-running continues where it stopped.
+
+## Run it locally
 
 ```bash
 pip install -r requirements.txt
