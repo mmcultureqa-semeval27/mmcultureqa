@@ -8,11 +8,22 @@ cultural knowledge as much as on what the image shows.
 This repository holds the format checker, the scorer, and the baselines.
 The data lives on [Hugging Face](https://huggingface.co/datasets/QCRI/MMCQA-SemEval27).
 
-- [Task 1: Spoken Visual QA](task1) — the question is an audio clip.
-- [Task 2: Textual Visual QA](task2) — the same question as text.
+## The two tasks
 
-Both tasks return a text answer and are scored identically, so one scorer and one format
-checker serve both.
+Both take an image and a question and return a short text answer; they differ only in how the
+question arrives. The images and the questions are the same, so comparing the two tells you
+what the speech step costs your system. Enter either task or both.
+
+| | Task 1, Spoken Visual QA | Task 2, Textual Visual QA |
+|---|---|---|
+| input | image + the question as a wav, 24 kHz mono | image + the question as text |
+| output | one or two sentences of text | one or two sentences of text |
+| configs | `sqa_mena_<variety>` | `qa_mena_<variety>` |
+| row fields | `id`, `image`, `audio` | `id`, `image`, `question` |
+
+train and dev rows also carry `answer`; devtest does not, since the development phase is
+scored on it. Both tasks are scored identically, so one scorer and one format checker serve
+both.
 
 ## Language tracks
 
@@ -39,12 +50,10 @@ all of them. Systems are ranked per task and per track.
 
 ```text
 .
+├── data/                download_data.py: rows and media, unpacked and checked
 ├── baselines/           Qwen2.5-Omni reference system for both tasks
-├── data/                how to download the data and the media
 ├── format_checker/      run before you submit
 ├── scorer/              the leaderboard's own evaluation script, so you can score locally
-├── task1/               Spoken Visual QA
-├── task2/               Textual Visual QA
 └── requirements.txt
 ```
 
@@ -56,15 +65,15 @@ pip install -r requirements.txt
 # 1. get the data: rows, media, unpacked and checked
 python data/download_data.py --tracks en --splits dev --root ~/mmcqa
 
-# 2. produce prediction.jsonl — baselines/ has a reference system
-python baselines/baseline_qwen_omni.py --task qa --track en --split dev --media-root ~/mmcqa
+# 2. answer: --task qa for Task 2 (written), --task sqa for Task 1 (spoken)
+python baselines/baseline_qwen_omni.py --task qa --track en --split devtest --media-root ~/mmcqa
 
 # 3. check the format before you submit
-python format_checker/check_format.py --pred prediction.jsonl --lang en \
+python format_checker/check_format.py --pred prediction_qa_en.jsonl --lang en \
     --ids ~/mmcqa/rows/qa_mena_devtest_en.parquet
 
 # 4. score yourself on a labelled split
-python scorer/score.py --gold ~/mmcqa/rows/qa_mena_dev_en.parquet --pred prediction.jsonl
+python scorer/score.py --gold ~/mmcqa/rows/qa_mena_dev_en.parquet --pred prediction_qa_en.jsonl
 ```
 
 ## Submission format
