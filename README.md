@@ -39,12 +39,12 @@ the Arab world and English about another region are separate tracks).
 | Egyptian Arabic | `arz` | `sqa_mena_arz` | `qa_mena_arz` |
 | Levantine Arabic | `ajp` | `sqa_mena_ajp` | `qa_mena_ajp` |
 
-These four are open now, all in the MENA region. **Nineteen more language tracks are
-declared and open as their data lands** — Bangla, Urdu, Hindi, Assamese, Gujarati, Marathi,
-Italian, Spanish, Portuguese, Turkish, Amharic, Oromo, Somali, Tigrinya, Chinese, Nepali,
-Sinhala, Telugu and Swahili — each in the same layout, so a system written for one track runs
-on a new one by changing the config name. Enter any subset: one task or both, one track or
-all of them. Systems are ranked per task and per track.
+These four are open now, all in the MENA region. **More language tracks open as their data
+lands**, in South Asia, Europe, East Asia and the Horn of Africa; each arrives in the same
+layout, so a system written for one track runs on a new one by changing the config name. The
+[task website](https://mmcultureqa-semeval27.github.io/) announces a track when it opens.
+Enter any subset: one task or both, one track or all of them. Systems are ranked per task and
+per track.
 
 ## Repository structure
 
