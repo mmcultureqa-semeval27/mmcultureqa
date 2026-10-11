@@ -7,8 +7,9 @@ text in the same conversation:
     Task 1 (Spoken VQA)   image + the spoken question (wav)
     Task 2 (Textual VQA)  image + the written question
 
-It writes a submission-ready ``prediction.jsonl``. Run it once per track and
-the answers merge into the same file, so one file can cover all four tracks.
+It writes a submission-ready ``prediction.jsonl``: one line per item,
+``{"id": ..., "answer": ...}``. A submission covers one track, so run it once
+per track and submit each file under that track.
 
 This is a reference, not a strong system: greedy decoding, a short prompt, no
 retrieval and no fine-tuning. You are free to change everything.
@@ -25,9 +26,9 @@ Usage
     python baseline_qwen_omni.py --task qa --track en --split dev \
         --media-root ~/mmcqa --limit 50
 
-    # Task 1, Egyptian Arabic, the devtest split, appending to the same file
+    # Task 1, Egyptian Arabic, the devtest split
     python baseline_qwen_omni.py --task sqa --track arz --split devtest \
-        --media-root ~/mmcqa --out prediction.jsonl
+        --media-root ~/mmcqa --out prediction_sqa_arz.jsonl --zip
 
 A 3B model in 4-bit fits a 16 GB GPU (a free Colab T4). Add ``--no-quantize``
 if you have the memory, or ``--model Qwen/Qwen2.5-Omni-7B`` for the larger one.
@@ -106,20 +107,12 @@ def answer(model, processor, image: Path, audio: Path | None, question: str | No
     return out[0].strip()
 
 
-def merge_into(path: Path, track: str, answers: dict[str, str]) -> None:
-    """Keep one row per id, with one answer per track, so runs can be combined."""
-    rows: dict[str, dict] = {}
-    if path.exists():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                row = json.loads(line)
-                rows[str(row["id"])] = {"id": str(row["id"]),
-                                        "answers": dict(row.get("answers", {}))}
-    for item_id, text in answers.items():
-        rows.setdefault(item_id, {"id": item_id, "answers": {}})["answers"][track] = text
+def write_predictions(path: Path, track: str, answers: dict[str, str]) -> None:
+    """The submission shape: one line per item, one track per file."""
     with path.open("w", encoding="utf-8") as fh:
-        for row in rows.values():
-            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+        for item_id, text in answers.items():
+            fh.write(json.dumps({"id": item_id, "answer": text, "lang": track},
+                                ensure_ascii=False) + "\n")
 
 
 def main() -> None:
@@ -133,7 +126,8 @@ def main() -> None:
     parser.add_argument("--split", default="devtest", choices=["train", "dev", "devtest"])
     parser.add_argument("--media-root", required=True, type=Path,
                         help="Where you unzipped the archives (holds images/ and audio/)")
-    parser.add_argument("--out", default=Path("prediction.jsonl"), type=Path)
+    parser.add_argument("--out", type=Path,
+                        help="Default: prediction_<task>_<track>.jsonl")
     parser.add_argument("--model", default="Qwen/Qwen2.5-Omni-3B")
     parser.add_argument("--no-quantize", action="store_true", help="Load in full precision")
     parser.add_argument("--max-new-tokens", type=int, default=64)
@@ -142,6 +136,7 @@ def main() -> None:
     parser.add_argument("--zip", action="store_true", help="Also write prediction.zip")
     args = parser.parse_args()
 
+    args.out = args.out or Path(f"prediction_{args.task}_{args.track}.jsonl")
     rows = load_rows(args.task, args.track, args.split, args.limit, args.region)
     print(f"[baseline] {args.task}_{args.region}_{args.track} / {args.split}: {len(rows)} items")
     missing = [r for r in rows if not (args.media_root / r["image"]).is_file()]
@@ -171,7 +166,7 @@ def main() -> None:
             print(f"  {i}/{len(rows)}  {rate:.2f} items/s  "
                   f"eta {(len(rows)-i)/rate/60:.0f} min", flush=True)
 
-    merge_into(args.out, args.track, answers)
+    write_predictions(args.out, args.track, answers)
     print(f"[baseline] wrote {args.out} ({len(answers)} answers for {args.track})")
     if args.zip:
         import zipfile

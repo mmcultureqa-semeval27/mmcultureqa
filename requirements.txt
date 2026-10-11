@@ -1,7 +1,9 @@
-# format checker + scorer (the scorer runs the leaderboard's evaluation script)
+# format checker + scorer (the scorer runs the leaderboard's evaluation script).
+# torch>=2.6 is required: the mmBERT checkpoint ships only pytorch_model.bin and
+# transformers refuses torch.load on older torch.
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.3.1
-transformers==4.57.6
+torch>=2.6
+transformers>=4.48
 bert_score==0.3.12
 numpy<2
 sacrebleu==2.5.1
@@ -9,3 +11,4 @@ sentencepiece
 rouge-score
 pyarrow            # to read the released .parquet files
 datasets           # to pull the data from the Hub
+huggingface_hub

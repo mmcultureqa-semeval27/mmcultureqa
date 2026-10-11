@@ -8,9 +8,6 @@ cultural knowledge as much as on what the image shows.
 This repository holds the format checker, the scorer, and the baselines.
 The data lives on [Hugging Face](https://huggingface.co/datasets/QCRI/MMCQA-SemEval27).
 
-> **Status:** the data, the download script, the baseline and the format checker are here.
-> The official scorer follows shortly, together with the submission platform.
-
 - [Task 1: Spoken Visual QA](task1) — the question is an audio clip.
 - [Task 2: Textual Visual QA](task2) — the same question as text.
 
@@ -31,10 +28,12 @@ the Arab world and English about another region are separate tracks).
 | Egyptian Arabic | `arz` | `sqa_mena_arz` | `qa_mena_arz` |
 | Levantine Arabic | `ajp` | `sqa_mena_ajp` | `qa_mena_ajp` |
 
-These are the tracks released so far, all in the MENA region. **More languages and more
-regions follow**, each as its own track in the same layout, so a system written for one track
-runs on a new one by changing the config name. Enter any subset: one task or both, one track
-or all of them. Systems are ranked per task and per track.
+These four are open now, all in the MENA region. **Nineteen more language tracks are
+declared and open as their data lands** — Bangla, Urdu, Hindi, Assamese, Gujarati, Marathi,
+Italian, Spanish, Portuguese, Turkish, Amharic, Oromo, Somali, Tigrinya, Chinese, Nepali,
+Sinhala, Telugu and Swahili — each in the same layout, so a system written for one track runs
+on a new one by changing the config name. Enter any subset: one task or both, one track or
+all of them. Systems are ranked per task and per track.
 
 ## Repository structure
 
@@ -43,7 +42,7 @@ or all of them. Systems are ranked per task and per track.
 ├── baselines/           Qwen2.5-Omni reference system for both tasks
 ├── data/                how to download the data and the media
 ├── format_checker/      run before you submit
-├── scorer/              the leaderboard's own evaluation script        (coming shortly)
+├── scorer/              the leaderboard's own evaluation script, so you can score locally
 ├── task1/               Spoken Visual QA
 ├── task2/               Textual Visual QA
 └── requirements.txt
@@ -61,44 +60,49 @@ python data/download_data.py --tracks en --splits dev --root ~/mmcqa
 python baselines/baseline_qwen_omni.py --task qa --track en --split dev --media-root ~/mmcqa
 
 # 3. check the format before you submit
-python format_checker/check_format.py --pred prediction.jsonl --ids ~/mmcqa/rows/qa_mena_dev_en.parquet
+python format_checker/check_format.py --pred prediction.jsonl --lang en \
+    --ids ~/mmcqa/rows/qa_mena_devtest_en.parquet
+
+# 4. score yourself on a labelled split
+python scorer/score.py --gold ~/mmcqa/rows/qa_mena_dev_en.parquet --pred prediction.jsonl
 ```
 
 ## Submission format
 
-One JSON object per line in `prediction.jsonl`, nested, answering several tracks per item,
+A submission covers **one track**. One JSON object per line in `prediction.jsonl`, one line
+per item of the split:
 
 ```json
-{"id": "<id>", "answers": {"en": "...", "msa": "..."}}
+{"id": "<id>", "answer": "..."}
 ```
 
-or flat, one line per item and track,
+The track is chosen in the `Language` field of the upload form, not read from the file; a
+`lang` key on every line also works. Submit exactly the ids of the split you are answering.
+An unanswered item scores zero, so a poor answer still beats no answer.
 
-```json
-{"id": "<id>", "lang": "en", "answer": "..."}
-```
-
-Submit exactly the ids of the split you are answering. An unanswered item scores zero, so a
-poor answer still beats no answer.
+Upload `prediction.jsonl`, or a `.zip` containing it, to the phase of the stage you are
+entering (Dev-test now; Test during the evaluation period).
 
 ## Evaluation
 
 | metric | role |
 |---|---|
-| **BERTScore-F1** | **the official ranking metric**, `bert-base-multilingual-cased`, layer 9 |
+| **BERTScore-F1** | **the official ranking metric**, [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base), layer 17 |
 | BERTScore-P / R | reported alongside |
 | BLEU | sacreBLEU, `flores200` tokenizer |
 | ROUGE-L | F measure with a Unicode word tokenizer |
 | Coverage | share of items answered |
 
-Scores are reported per track, and `all` is the macro-average over the tracks of the phase.
-`scorer/` also offers [mmBERT](https://huggingface.co/jhu-clsp/mmBERT-base) as an alternative
-encoder for comparison; the ranking stays on mBERT.
+Each submission is scored for its own track, and a per-country breakdown of F1 comes back
+with it. `scorer/` can also run `bert-base-multilingual-cased` for comparison; the ranking
+stays on mmBERT.
 
 ## Timeline
 
 The official schedule is on the [task website](https://mmcultureqa-semeval27.github.io/#dates).
 Train, dev and devtest for the MENA region are out now; more varieties and the test set follow.
+Submissions run in stages: the **Dev-test** leaderboard is open on the devtest split, and the
+**Test** phase opens for the evaluation period.
 
 ## Licensing
 

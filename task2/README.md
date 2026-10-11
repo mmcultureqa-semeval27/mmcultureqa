@@ -34,20 +34,24 @@ plus the question text:
 
 ```bash
 python ../baselines/baseline_qwen_omni.py --task qa --track en --split devtest \
-    --media-root ~/mmcqa --out prediction.jsonl
+    --media-root ~/mmcqa --out prediction_qa_en.jsonl
 ```
 
 ## Submit
 
 ```json
-{"id": "<id>", "answers": {"en": "..."}}
+{"id": "<id>", "answer": "..."}
 ```
+
+One track per submission; on the platform you pick it in the `Language` field of the upload
+form.
 
 ```bash
-python ../format_checker/check_format.py --pred prediction.jsonl \
+python ../format_checker/check_format.py --pred prediction.jsonl --lang en \
     --ids ~/mmcqa/rows/qa_mena_devtest_en.parquet
+python ../scorer/score.py --gold ~/mmcqa/rows/qa_mena_dev_en.parquet \
+    --pred prediction.jsonl        # on a labelled split
 ```
 
-The official scorer follows shortly; see the repository README.
-
-Ranked by **BERTScore-F1**; BLEU, ROUGE-L and Coverage are reported alongside.
+Ranked by **BERTScore-F1** (mmBERT, layer 17); BLEU, ROUGE-L and Coverage are reported
+alongside. See [../scorer](../scorer).

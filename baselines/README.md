@@ -24,14 +24,14 @@ python ../data/download_data.py --tracks en --splits dev --root ~/mmcqa
 python baseline_qwen_omni.py --task qa --track en --split dev \
     --media-root ~/mmcqa --limit 50
 
-# Task 1, Egyptian Arabic, on devtest, into the same prediction file
+# Task 1, Egyptian Arabic, on devtest
 python baseline_qwen_omni.py --task sqa --track arz --split devtest \
-    --media-root ~/mmcqa --out prediction.jsonl --zip
+    --media-root ~/mmcqa --zip        # -> prediction_sqa_arz.jsonl(.zip)
 ```
 
-Run it once per track; answers merge into the same `prediction.jsonl`, so one file can carry
-all the tracks you enter. `--track` takes any released variety code and `--region` defaults to
-`mena`, so new languages and regions need no code change.
+A submission covers one track, so run it once per track and submit each file under that
+track. `--track` takes any released variety code and `--region` defaults to `mena`, so new
+languages and regions need no code change.
 
 ## Hardware
 
@@ -52,9 +52,9 @@ disabled, so nothing is spent on speech output.
 ## After the run
 
 ```bash
-python ../format_checker/check_format.py --pred prediction.jsonl \
+python ../format_checker/check_format.py --pred prediction_qa_en.jsonl --lang en \
     --ids ~/mmcqa/rows/qa_mena_devtest_en.parquet
-```
 
-The official scorer follows shortly; it will score `prediction.jsonl` against a labelled split
-with the leaderboard's metrics.
+python ../scorer/score.py --gold ~/mmcqa/rows/qa_mena_dev_en.parquet \
+    --pred prediction_qa_en.jsonl
+```
