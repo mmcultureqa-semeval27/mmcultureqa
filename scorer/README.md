@@ -32,17 +32,28 @@ One submission covers one track, as on the platform, where the track is picked i
 
 An item you do not answer scores zero in every metric, so a poor answer still beats no answer.
 
+## The encoder, exactly
+
+| | |
+|---|---|
+| model | `jhu-clsp/mmBERT-base` (ModernBERT, 22 layers) |
+| revision | `c5955035435e2bf121cde7f3c8863ef52ff35d82` |
+| layer | 17 |
+| settings | `idf=False`, no baseline rescaling, fast tokenizer, max length 512, batch 64 |
+
+`score.py` fetches that revision and scores against it, which is what the leaderboard loads,
+so local numbers and leaderboard numbers come from the same weights. `--no-pin` uses whatever
+is current on the Hub instead. The first run downloads about 1 GB.
+
 ## Install
 
-mmBERT ships only `pytorch_model.bin`, and transformers refuses `torch.load` on older torch,
-so the scorer needs **torch ≥ 2.6**:
+The versions are the ones the leaderboard worker installs; torch 2.6 is required because the
+mmBERT checkpoint ships only `pytorch_model.bin` and transformers refuses `torch.load` on
+older torch.
 
 ```bash
 pip install -r ../requirements.txt
 ```
-
-The encoder is pinned to a revision in `backbone.py`, so everyone scores against the same
-weights. The first run downloads it (about 1 GB).
 
 ## Alternative encoder
 

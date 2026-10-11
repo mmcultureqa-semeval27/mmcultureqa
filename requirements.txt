@@ -1,14 +1,17 @@
-# format checker + scorer (the scorer runs the leaderboard's evaluation script).
-# torch>=2.6 is required: the mmBERT checkpoint ships only pytorch_model.bin and
-# transformers refuses torch.load on older torch.
+# Format checker and scorer. The versions are the ones the leaderboard worker
+# installs, so local scores match: see evaluation_script/requirements.txt in the
+# challenge repo. torch 2.6 is required because the mmBERT checkpoint ships only
+# pytorch_model.bin and transformers refuses torch.load on older torch.
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch>=2.6
-transformers>=4.48
+torch==2.6.0
+transformers==4.57.6
 bert_score==0.3.12
 numpy<2
 sacrebleu==2.5.1
 sentencepiece
 rouge-score
-pyarrow            # to read the released .parquet files
-datasets           # to pull the data from the Hub
+
+# for this repository's own scripts (reading the released parquet, downloading)
+pyarrow
+datasets
 huggingface_hub

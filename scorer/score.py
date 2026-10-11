@@ -96,6 +96,21 @@ def build_gold(paths: list[Path], override: str | None) -> tuple[list[dict], str
     return list(gold.values()), track
 
 
+def pin_weights(revision: str | None) -> None:
+    """Load the exact weights the leaderboard scores with.
+
+    backbone.py names the revision but bert_score cannot take one, so the
+    platform points MMCQA_MODEL_DIR at a local copy of it. We do the same: fetch
+    that revision once and hand the directory over the same way.
+    """
+    if os.environ.get("MMCQA_MODEL_DIR") or not revision:
+        return
+    from huggingface_hub import snapshot_download
+    path = snapshot_download(backbone.HUB_MODEL, revision=revision)
+    os.environ["MMCQA_MODEL_DIR"] = path
+    print(f"[score] weights pinned to {revision[:12]}")
+
+
 def use_backbone(name: str, num_layers: int | None) -> None:
     """Swap the encoder without touching the bundled leaderboard script."""
     if name == "mmbert" and not num_layers:
@@ -127,10 +142,14 @@ def main() -> None:
     parser.add_argument("--backbone", default="mmbert",
                         help=f"{' / '.join(BACKBONES)} or any HF encoder (default: mmbert)")
     parser.add_argument("--num-layers", type=int, help="Encoder layer, for a custom encoder")
+    parser.add_argument("--no-pin", action="store_true",
+                        help="Use whatever is on the Hub instead of the pinned revision")
     parser.add_argument("--out", type=Path, help="Write the full result as JSON")
     args = parser.parse_args()
 
     gold, track = build_gold(args.gold, args.lang)
+    if args.backbone == "mmbert" and not args.no_pin:
+        pin_weights(getattr(backbone, "HUB_REVISION", None))
     use_backbone(args.backbone, args.num_layers)
 
     with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as fh:
