@@ -83,8 +83,10 @@ def build_model(model_id: str, quantize: bool, max_pixels: int):
     return model, processor
 
 
+@torch.no_grad()
 def answer(model, processor, image: Path, audio: Path | None, question: str | None,
            track: str, max_new_tokens: int) -> str:
+    import torch
     from qwen_omni_utils import process_mm_info
     content: list[dict] = [{"type": "image", "image": str(image)}]
     if audio is not None:
@@ -104,6 +106,8 @@ def answer(model, processor, image: Path, audio: Path | None, question: str | No
     generated = model.generate(**inputs, do_sample=False, max_new_tokens=max_new_tokens)
     out = processor.batch_decode(generated[:, inputs["input_ids"].shape[1]:],
                                  skip_special_tokens=True, clean_up_tokenization_spaces=False)
+    del inputs, generated
+    torch.cuda.empty_cache()          # avoids a slow creep to OOM over a long run
     return out[0].strip()
 
 
@@ -131,7 +135,7 @@ def main() -> None:
     parser.add_argument("--model", default="Qwen/Qwen2.5-Omni-3B")
     parser.add_argument("--no-quantize", action="store_true", help="Load in full precision")
     parser.add_argument("--max-new-tokens", type=int, default=64)
-    parser.add_argument("--max-pixels", type=int, default=768 * 28 * 28)
+    parser.add_argument("--max-pixels", type=int, default=512 * 28 * 28)
     parser.add_argument("--limit", type=int, help="Only the first N items, for a smoke test")
     parser.add_argument("--zip", action="store_true", help="Also write prediction.zip")
     args = parser.parse_args()
